@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Kacper · Coach"/>
+<meta name="theme-color" content="#1a7a4a"/>
+<title>Kacper Mazur · Coach Dashboard</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+html { height: 100%; -webkit-text-size-adjust: 100%; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif; background: #1a7a4a; color: #0f2d20; min-height: 100vh; }
+:root {
+  --bg: #1a7a4a; --surface: #ffffff; --surface2: #f4fbf7;
+  --border: rgba(0,0,0,0.08); --border2: rgba(0,0,0,0.12);
+  --green: #1a7a4a; --green-dim: rgba(26,122,74,0.1); --green-light: #2ecc82;
+  --orange: #f97316; --orange-dim: rgba(249,115,22,0.1);
+  --red: #ef4444; --red-dim: rgba(239,68,68,0.1);
+  --yellow: #eab308; --yellow-dim: rgba(234,179,8,0.1);
+  --text: #0f2d20; --muted: #4a7a62; --hint: #8db8a0;
+  --safe-bottom: env(safe-area-inset-bottom, 20px);
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+.app { max-width: 640px; margin: 0 auto; padding-bottom: calc(24px + var(--safe-bottom)); padding-top: var(--safe-top); }
+
+.top-bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; position: sticky; top: 0; z-index: 50; background: #1a7a4a; }
+.brand { display: flex; align-items: center; gap: 8px; }
+.brand-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.8); }
+.brand-text { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.9); }
+.brand-sub { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500; letter-spacing: 0.05em; }
+.home-btn { width: 30px; height: 30px; border-radius: 9px; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+
+.slide { display: none; padding: 0 12px 12px; }
+.slide.active { display: block; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.card-accent { border-color: rgba(26,122,74,0.18); background: linear-gradient(135deg,#fff 0%,#f6fdf9 100%); }
+.card-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.section-label { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--hint); margin-bottom: 8px; }
+
+.badge { display: inline-flex; align-items: center; font-size: 11px; padding: 4px 12px; border-radius: 99px; font-weight: 700; border: 1.5px solid; white-space: nowrap; }
+.badge-white { background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.4); }
+.badge-green { background: var(--green-dim); color: var(--green); border-color: rgba(26,122,74,0.3); }
+.badge-orange { background: var(--orange-dim); color: var(--orange); border-color: rgba(249,115,22,0.3); }
+.badge-gray { background: rgba(0,0,0,0.05); color: var(--hint); border-color: var(--border2); }
+.badge-red { background: var(--red-dim); color: var(--red); border-color: rgba(239,68,68,0.3); }
+.badge-yellow { background: var(--yellow-dim); color: #92400e; border-color: rgba(234,179,8,0.3); }
+
+label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 5px; font-weight: 600; }
+input[type=text], input[type=date], textarea, select { width: 100%; background: var(--surface2); border: 1.5px solid var(--border2); border-radius: 12px; padding: 13px 14px; font-size: 16px; color: var(--text); font-family: inherit; margin-bottom: 12px; outline: none; transition: border-color 0.2s; -webkit-appearance: none; appearance: none; resize: none; }
+textarea { min-height: 80px; }
+input:focus, textarea:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(26,122,74,0.1); }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.btn { background: var(--surface); border: 1.5px solid var(--border2); border-radius: 14px; padding: 14px 16px; font-size: 14px; color: var(--muted); cursor: pointer; font-family: inherit; font-weight: 700; text-align: center; width: 100%; min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; -webkit-user-select: none; user-select: none; transition: all 0.15s; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: linear-gradient(135deg,#0f2d20 0%,#1a7a4a 100%); border: none; color: #fff; box-shadow: 0 4px 20px rgba(26,122,74,0.35); font-weight: 800; font-size: 15px; min-height: 52px; border-radius: 14px; }
+
+.student-card { background: var(--surface); border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.04); border: 1px solid var(--border); transition: transform 0.1s; }
+.student-card:active { transform: scale(0.98); }
+.student-name { font-size: 15px; font-weight: 800; color: var(--text); }
+.student-meta { font-size: 11px; color: var(--hint); margin-top: 2px; }
+
+.tab-row { display: flex; background: var(--surface2); border-radius: 14px; padding: 4px; margin-bottom: 12px; gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.tab-row::-webkit-scrollbar { display: none; }
+.tab-btn { flex: 1 0 auto; background: transparent; border: none; border-radius: 10px; padding: 10px 12px; font-size: 12px; font-weight: 700; color: var(--hint); cursor: pointer; font-family: inherit; white-space: nowrap; transition: all 0.15s; }
+.tab-btn.active { background: var(--green); color: #fff; box-shadow: 0 2px 8px rgba(26,122,74,0.3); }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0f2d20; color: #fff; padding: 12px 20px; border-radius: 99px; font-size: 13px; font-weight: 700; opacity: 0; transition: all 0.3s; z-index: 300; white-space: nowrap; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.loading-spinner { text-align: center; padding: 40px 0; color: rgba(255,255,255,0.5); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top-bar">
+    <div class="brand">
+      <div id="home-btn" class="home-btn" onclick="goToOverview()" style="display:none;">
+        <svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V10"/></svg>
+      </div>
+      <div class="brand-dot"></div>
+      <div>
+        <div class="brand-text">Kacper M · Coach Dashboard</div>
+        <div class="brand-sub" id="top-sub">Alle studenten</div>
+      </div>
+    </div>
+    <span class="badge badge-white" id="top-badge">Overzicht</span>
+  </div>
+
+  <div class="slide active" id="slide-overview">
+    <div style="text-align:center;margin:8px 0 16px;">
+      <div style="font-size:20px;font-weight:800;color:#fff;">👥 Jouw studenten</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px;">Tik op een student voor details</div>
+    </div>
+    <div id="student-list"></div>
+  </div>
+
+  <div class="slide" id="slide-student">
+    <div style="background:linear-gradient(135deg,#0f2d20 0%,#1a7a4a 100%);border-radius:18px;padding:18px 20px;margin-bottom:12px;position:relative;overflow:hidden;">
+      <div style="position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(46,204,130,0.2),transparent 60%);"></div>
+      <div style="position:relative;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:4px;" id="student-detail-label">Student</div>
+        <div style="font-size:20px;font-weight:800;color:#fff;" id="student-detail-name">—</div>
+        <div style="display:flex;gap:16px;margin-top:12px;">
+          <div><div style="font-size:18px;font-weight:800;color:#fbbf24;" id="student-detail-streak">🔥 —</div><div style="font-size:9px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;">streak</div></div>
+          <div><div style="font-size:18px;font-weight:800;color:#fff;" id="student-detail-score">—%</div><div style="font-size:9px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;">weekscore</div></div>
+          <div><div style="font-size:18px;font-weight:800;color:#fff;" id="student-detail-week">—/12</div><div style="font-size:9px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;">week</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-row">
+      <button class="tab-btn active" id="dtab-taken" onclick="setDetailTab('taken')">📋 Taken</button>
+      <button class="tab-btn" id="dtab-checkins" onclick="setDetailTab('checkins')">✅ Check-ins</button>
+      <button class="tab-btn" id="dtab-12wy" onclick="setDetailTab('12wy')">🎯 12WY</button>
+    </div>
+
+    <div id="dpanel-taken">
+      <div class="card card-accent">
+        <div class="card-header"><div class="card-title">➕ Nieuwe taak</div></div>
+        <label>Taakomschrijving</label>
+        <input type="text" id="newtaak-titel" placeholder="Bijv. 3 maanden EUR/USD backtest data verzamelen" style="margin-bottom:10px;"/>
+        <div class="row">
+          <div>
+            <label>Deadline</label>
+            <input type="date" id="newtaak-deadline" style="margin:0;"/>
+          </div>
+          <div>
+            <label>Categorie</label>
+            <select id="newtaak-cat" style="margin:0;">
+              <option value="analyse">📊 Analyse</option>
+              <option value="backtest">🔁 Backtest</option>
+              <option value="psychologie">🧠 Psychologie</option>
+              <option value="risico">⚖️ Risicobeheer</option>
+              <option value="overige">📌 Overige</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="coachAddTaak()" style="margin-top:10px;">➕ Taak toevoegen</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Takenlijst</div><span class="badge badge-gray" id="taken-count-badge">0</span></div>
+        <div id="taken-detail-list"></div>
+      </div>
+    </div>
+
+    <div id="dpanel-checkins" style="display:none;">
+      <div class="card card-accent">
+        <div class="card-header"><div class="card-title">📊 Netto overzicht</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="background:var(--surface2);border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:10px;color:var(--hint);font-weight:700;text-transform:uppercase;margin-bottom:4px;">Totaal R</div>
+            <div style="font-size:22px;font-weight:800;" id="checkins-totalr">—</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:10px;color:var(--hint);font-weight:700;text-transform:uppercase;margin-bottom:4px;">Winrate</div>
+            <div style="font-size:22px;font-weight:800;color:var(--text);" id="checkins-winrate">—</div>
+          </div>
+        </div>
+      </div>
+      <div id="checkins-detail-list"></div>
+    </div>
+
+    <div id="dpanel-12wy" style="display:none;">
+      <div id="wy12-detail-content"></div>
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div id="coach-pin-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:500;align-items:center;justify-content:center;padding:20px;">
+    <div style="background:#fff;border-radius:24px;padding:28px 24px;width:100%;max-width:320px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+      <div style="font-size:32px;margin-bottom:8px;">🔐</div>
+      <div style="font-size:18px;font-weight:800;color:#0f2d20;margin-bottom:4px;">Coach toegang</div>
+      <div style="font-size:13px;color:#6b7280;margin-bottom:20px;">Voer de pincode in</div>
+      <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
+        <div style="width:14px;height:14px;border-radius:50%;border:2px solid #1a7a4a;background:transparent;" id="dot-0"></div>
+        <div style="width:14px;height:14px;border-radius:50%;border:2px solid #1a7a4a;background:transparent;" id="dot-1"></div>
+        <div style="width:14px;height:14px;border-radius:50%;border:2px solid #1a7a4a;background:transparent;" id="dot-2"></div>
+        <div style="width:14px;height:14px;border-radius:50%;border:2px solid #1a7a4a;background:transparent;" id="dot-3"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;" id="pin-keypad"></div>
+      <div id="pin-error" style="display:none;color:#ef4444;font-size:13px;font-weight:700;margin-top:10px;">❌ Verkeerde pincode</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const JSONBIN_ID = '6a28759bf5f4af5e29d43b3d';
+const JSONBIN_KEY = '$2a$10$zj.JjyN7CR0V3zgeEnAkSu1TV2M1rcNbLJmf02JgXSBfWmJc0Ax4O';
+const COACH_PIN = '1337';
+
+async function fetchCentralBin() {
+  const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`, {
+    headers: { 'X-Master-Key': JSONBIN_KEY }
+  });
+  const data = await res.json();
+  const record = data.record;
+  if(Array.isArray(record)) return { students: {} };
+  return record && record.students ? record : { students: {} };
+}
+
+async function pushCentralBin(fullData) {
+  await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+    body: JSON.stringify(fullData)
+  });
+}
+
+const ALL_STUDENT_KEYS = [
+  'olivier_de_krom', 'joshua_van_de_kamp', 'richard_matteman', 'sc_van_leusden',
+  'ayoub_el_atrouss', 'quint_van_den_heuvel', 'donny_van_zwol'
+];
+const ALL_STUDENT_NAMES = {
+  'olivier_de_krom': 'Olivier de Krom', 'joshua_van_de_kamp': 'Joshua van de Kamp',
+  'richard_matteman': 'Richard Matteman', 'sc_van_leusden': 'S.C. van Leusden',
+  'ayoub_el_atrouss': 'Ayoub El-Atrouss', 'quint_van_den_heuvel': 'Quint van den Heuvel',
+  'donny_van_zwol': 'Donny van Zwol'
+};
+const catLabels = {
+  analyse: '📊 Analyse', backtest: '🔁 Backtest',
+  psychologie: '🧠 Psychologie', risico: '⚖️ Risicobeheer', overige: '📌 Overige'
+};
+const catLabelsWY = {
+  'Risicobeheer en executie': '⚖️ Risicobeheer en executie',
+  'Voorbereiding en discipline': '📊 Voorbereiding en discipline',
+  'Psychologie en consistentie': '🧠 Psychologie en consistentie',
+  'Scale-in en rotatie strategie': '🔁 Scale-in en rotatie strategie'
+};
+
+let currentStudentKey = null;
+let currentDetailTab = 'taken';
+let cachedBin = null;
+let isCoachAuthenticated = false;
+let pinBuffer = '';
+
+function buildPinKeypad() {
+  const keys = [1,2,3,4,5,6,7,8,9,'',0,'⌫'];
+  document.getElementById('pin-keypad').innerHTML = keys.map(k => `
+    <button onclick="pinKey('${k}')" style="padding:18px;font-size:22px;font-weight:700;background:${k===''?'transparent':'#f3f4f6'};border:none;border-radius:14px;cursor:${k===''?'default':'pointer'};color:#0f2d20;font-family:inherit;${k===''?'pointer-events:none;':''}">${k}</button>
+  `).join('');
+}
+
+function showPinOverlay() {
+  pinBuffer = '';
+  updatePinDots();
+  document.getElementById('pin-error').style.display = 'none';
+  document.getElementById('coach-pin-overlay').style.display = 'flex';
+  buildPinKeypad();
+}
+
+function pinKey(k) {
+  if(k === '⌫') {
+    pinBuffer = pinBuffer.slice(0,-1);
+  } else if(k !== '' && pinBuffer.length < 4) {
+    pinBuffer += k;
+  }
+  updatePinDots();
+  if(pinBuffer.length === 4) {
+    setTimeout(() => {
+      if(pinBuffer === COACH_PIN) {
+        isCoachAuthenticated = true;
+        document.getElementById('coach-pin-overlay').style.display = 'none';
+        pinBuffer = '';
+        loadOverview();
+      } else {
+        document.getElementById('pin-error').style.display = 'block';
+        pinBuffer = '';
+        updatePinDots();
+      }
+    }, 200);
+  }
+}
+
+function updatePinDots() {
+  for(let i=0;i<4;i++) {
+    const dot = document.getElementById('dot-'+i);
+    if(dot) dot.style.background = i < pinBuffer.length ? '#1a7a4a' : 'transparent';
+  }
+}
+
+function goToOverview() {
+  document.getElementById('slide-student').classList.remove('active');
+  document.getElementById('slide-student').style.display = 'none';
+  document.getElementById('slide-overview').classList.add('active');
+  document.getElementById('slide-overview').style.display = 'block';
+  document.getElementById('home-btn').style.display = 'none';
+  document.getElementById('top-badge').textContent = 'Overzicht';
+  document.getElementById('top-sub').textContent = 'Alle studenten';
+  currentStudentKey = null;
+  window.scrollTo(0,0);
+}
+
+function openStudent(key) {
+  currentStudentKey = key;
+  currentDetailTab = 'taken';
+  document.getElementById('slide-overview').classList.remove('active');
+  document.getElementById('slide-overview').style.display = 'none';
+  document.getElementById('slide-student').classList.add('active');
+  document.getElementById('slide-student').style.display = 'block';
+  document.getElementById('home-btn').style.display = 'flex';
+  document.getElementById('top-badge').textContent = 'Student';
+  document.getElementById('top-sub').textContent = ALL_STUDENT_NAMES[key];
+  document.getElementById('student-detail-name').textContent = ALL_STUDENT_NAMES[key];
+  setDetailTab('taken');
+  renderStudentDetail();
+  window.scrollTo(0,0);
+}
+
+function setDetailTab(tab) {
+  currentDetailTab = tab;
+  ['taken','checkins','12wy'].forEach(t => {
+    document.getElementById('dtab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('dpanel-'+t).style.display = t===tab ? 'block' : 'none';
+  });
+}
+
+async function loadOverview() {
+  document.getElementById('student-list').innerHTML = '<div class="loading-spinner">⏳ Studenten laden...</div>';
+  try {
+    cachedBin = await fetchCentralBin();
+    renderStudentList();
+  } catch(e) {
+    document.getElementById('student-list').innerHTML = '<div class="loading-spinner" style="color:#f87171;">⚠️ Kon data niet laden. Check je internetverbinding.</div>';
+  }
+}
+
+function dashToday() { const d = new Date(); d.setHours(0,0,0,0); return d; }
+function dashAddDays(date, n) { const d = new Date(date); d.setDate(d.getDate()+n); return d; }
+function dashDateKey(date) { return date.toISOString().split('T')[0]; }
+function dashParseKey(key) { return new Date(key + 'T00:00:00'); }
+
+function getCycleDayNum(cycle, date) {
+  const start = dashParseKey(cycle.startDate);
+  return Math.floor((date - start) / (1000*60*60*24)) + 1;
+}
+function getCycleWeekNum(cycle, date) {
+  return Math.min(Math.ceil(getCycleDayNum(cycle, date) / 7), 12);
+}
+function isTacticScheduledOnDash(tactic, date) {
+  if(tactic.frequentie === 'dagelijks') return true;
+  if(Array.isArray(tactic.frequentie)) return tactic.frequentie.includes(date.getDay());
+  return true;
+}
+function getActiveTacticsDash(cycle) { return cycle.tactics.filter(t => t.actief); }
+
+function calcStreakDash(cycle) {
+  let streak = 0;
+  let cursor = dashToday();
+  const cycleStart = dashParseKey(cycle.startDate);
+  while(cursor >= cycleStart) {
+    const dayNum = getCycleDayNum(cycle, cursor);
+    if(dayNum > 84) { cursor = dashAddDays(cursor, -1); continue; }
+    const key = dashDateKey(cursor);
+    const checkin = cycle.dailyCheckins[key] || {};
+    const checkedCount = Object.values(checkin).filter(v => v === true).length;
+    if(cursor.getTime() === dashToday().getTime()) {
+      if(checkedCount > 0) streak++;
+      cursor = dashAddDays(cursor, -1);
+      continue;
+    }
+    if(checkedCount > 0) { streak++; cursor = dashAddDays(cursor, -1); }
+    else break;
+  }
+  return streak;
+}
+
+function getWeekRangeDash(cycle, weekNum) {
+  const start = dashParseKey(cycle.startDate);
+  const weekStart = dashAddDays(start, (weekNum-1)*7);
+  const weekEnd = dashAddDays(weekStart, 6);
+  return { weekStart, weekEnd };
+}
+
+function calcWeekScoreDash(cycle, weekNum, categorieFilter) {
+  const { weekStart, weekEnd } = getWeekRangeDash(cycle, weekNum);
+  const today = dashToday();
+  const tactics = categorieFilter
+    ? cycle.tactics.filter(t => t.actief && t.categorie === categorieFilter)
+    : getActiveTacticsDash(cycle);
+  if(!tactics.length) return null;
+  let totalMoments = 0, checkedMoments = 0;
+  let cursor = new Date(weekStart);
+  while(cursor <= weekEnd && cursor <= today) {
+    const key = dashDateKey(cursor);
+    const checkin = cycle.dailyCheckins[key] || {};
+    tactics.forEach(t => {
+      if(isTacticScheduledOnDash(t, cursor)) {
+        totalMoments++;
+        if(checkin[t.id]) checkedMoments++;
+      }
+    });
+    cursor = dashAddDays(cursor, 1);
+  }
+  if(totalMoments === 0) return null;
+  return Math.round((checkedMoments / totalMoments) * 100);
+}
+
+function getScoreColorDash(score) {
+  if(score === null) return '#8db8a0';
+  if(score >= 85) return '#1a7a4a';
+  if(score >= 70) return '#d97706';
+  return '#ef4444';
+}
+
+function getActiveCycleFor(studentKey) {
+  const sData = cachedBin.students[studentKey];
+  const wy12 = sData && sData.wy12 ? sData.wy12 : null;
+  if(!wy12) return null;
+  return wy12.cycles.find(c => c.id === wy12.activeCycleId && !c.archived) || null;
+}
+
+function getLastCompletedWeekDash(cycle) {
+  const today = dashToday();
+  const currentWeek = getCycleWeekNum(cycle, today);
+  return currentWeek > 1 ? currentWeek - 1 : null;
+}
+
+function renderStudentList() {
+  const container = document.getElementById('student-list');
+  let html = '';
+  ALL_STUDENT_KEYS.forEach(key => {
+    const sData = cachedBin.students[key] || {};
+    const taken = Array.isArray(sData.taken) ? sData.taken : [];
+    const openTaken = taken.filter(t => t.status !== 'done').length;
+    const cycle = getActiveCycleFor(key);
+
+    let streakVal = 0, scoreVal = null, weekVal = '—/12', wamStatus = null;
+    if(cycle) {
+      streakVal = calcStreakDash(cycle);
+      const today = dashToday();
+      const weekNum = getCycleWeekNum(cycle, today);
+      scoreVal = calcWeekScoreDash(cycle, weekNum);
+      weekVal = weekNum + '/12';
+      const lastWeek = getLastCompletedWeekDash(cycle);
+      if(lastWeek !== null) {
+        wamStatus = !!(cycle.weeklyReflections && cycle.weeklyReflections[lastWeek]);
+      }
+    }
+
+    const scoreColor = getScoreColorDash(scoreVal);
+
+    html += `<div class="student-card" onclick="openStudent('${key}')">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div class="student-name">${ALL_STUDENT_NAMES[key]}</div>
+          <div class="student-meta">${cycle ? 'Week ' + weekVal : 'Geen actieve 12WY cyclus'}${openTaken > 0 ? ' · ' + openTaken + ' open taak' + (openTaken>1?'en':'') : ''}</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div style="text-align:center;"><div style="font-size:15px;font-weight:800;color:#f59e0b;">🔥${streakVal}</div></div>
+          <div style="text-align:center;"><div style="font-size:15px;font-weight:800;color:${scoreColor};">${scoreVal!==null?scoreVal+'%':'—'}</div></div>
+          ${wamStatus===false ? '<span style="font-size:14px;" title="WAM nog niet ingevuld">⚠️</span>' : ''}
+          <svg width="16" height="16" fill="none" stroke="#c7d8cf" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+        </div>
+      </div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function renderStudentDetail() {
+  const cycle = getActiveCycleFor(currentStudentKey);
+  if(cycle) {
+    const today = dashToday();
+    const streak = calcStreakDash(cycle);
+    const weekNum = getCycleWeekNum(cycle, today);
+    const score = calcWeekScoreDash(cycle, weekNum);
+    document.getElementById('student-detail-streak').textContent = '🔥 ' + streak;
+    document.getElementById('student-detail-score').textContent = score!==null ? score+'%' : '—%';
+    document.getElementById('student-detail-score').style.color = score===null ? '#fff' : (score>=85?'#4ade80':score>=70?'#fbbf24':'#f87171');
+    document.getElementById('student-detail-week').textContent = weekNum + '/12';
+  } else {
+    document.getElementById('student-detail-streak').textContent = '🔥 0';
+    document.getElementById('student-detail-score').textContent = '—%';
+    document.getElementById('student-detail-week').textContent = '—/12';
+  }
+
+  renderTakenDetail();
+  renderCheckinsDetail();
+  renderWY12Detail();
+}
+
+function renderTakenDetail() {
+  const sData = cachedBin.students[currentStudentKey] || {};
+  const taken = Array.isArray(sData.taken) ? sData.taken : [];
+  document.getElementById('taken-count-badge').textContent = taken.length;
+
+  const container = document.getElementById('taken-detail-list');
+  if(!taken.length) {
+    container.innerHTML = '<p style="font-size:13px;color:var(--hint);text-align:center;padding:16px 0;">Nog geen taken</p>';
+    return;
+  }
+
+  const volgorde = {todo:0, bezig:1, done:2};
+  const sorted = [...taken].sort((a,b) => (volgorde[a.status]??0) - (volgorde[b.status]??0));
+
+  container.innerHTML = sorted.map(t => {
+    const isDone = t.status === 'done';
+    const isBezig = t.status === 'bezig';
+    const statusLabel = isDone ? '✅ Klaar' : isBezig ? '🔴 Bezig' : '⏳ Te doen';
+    const statusColor = isDone ? '#1a7a4a' : isBezig ? '#ef4444' : 'var(--hint)';
+    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);${isDone?'text-decoration:line-through;opacity:0.5;':''}">${t.titel}</div>
+        <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
+          <span style="font-size:10px;font-weight:700;color:var(--hint);">${catLabels[t.cat]||t.cat}</span>
+          <span style="font-size:10px;font-weight:700;color:${statusColor};">${statusLabel}</span>
+          ${t.deadline ? `<span style="font-size:10px;font-weight:700;color:var(--hint);">📅 ${new Date(t.deadline+'T12:00:00').toLocaleDateString('nl-NL',{day:'numeric',month:'short'})}</span>` : ''}
+        </div>
+      </div>
+      <button onclick="coachDeleteTaak('${t.id}')" style="font-size:11px;font-weight:700;color:var(--red);border:1.5px solid rgba(239,68,68,0.2);background:none;border-radius:8px;padding:5px 10px;cursor:pointer;font-family:inherit;flex-shrink:0;">🗑</button>
+    </div>`;
+  }).join('');
+}
+
+async function coachAddTaak() {
+  const titel = document.getElementById('newtaak-titel').value.trim();
+  const deadline = document.getElementById('newtaak-deadline').value;
+  const cat = document.getElementById('newtaak-cat').value;
+  if(!titel) { showToast('⚠️ Vul een taakomschrijving in!'); return; }
+
+  const bin = await fetchCentralBin();
+  if(!bin.students[currentStudentKey]) bin.students[currentStudentKey] = {};
+  if(!Array.isArray(bin.students[currentStudentKey].taken)) bin.students[currentStudentKey].taken = [];
+
+  bin.students[currentStudentKey].taken.unshift({
+    id: Date.now(),
+    titel, deadline: deadline || '', cat,
+    status: 'todo',
+    aangemaakt: new Date().toLocaleDateString('nl-NL')
+  });
+
+  await pushCentralBin(bin);
+  cachedBin = bin;
+  document.getElementById('newtaak-titel').value = '';
+  document.getElementById('newtaak-deadline').value = '';
+  renderTakenDetail();
+  showToast('✅ Taak toegevoegd voor ' + ALL_STUDENT_NAMES[currentStudentKey] + '!');
+}
+
+async function coachDeleteTaak(id) {
+  if(!confirm('Weet je zeker dat je deze taak wilt verwijderen?')) return;
+  const bin = await fetchCentralBin();
+  const taken = (bin.students[currentStudentKey] && bin.students[currentStudentKey].taken) || [];
+  bin.students[currentStudentKey].taken = taken.filter(t => String(t.id) !== String(id));
+  await pushCentralBin(bin);
+  cachedBin = bin;
+  renderTakenDetail();
+  showToast('🗑 Taak verwijderd');
+}
+
+function parseResultaatRDash(resultaat) {
+  if(!resultaat) return null;
+  const cleaned = resultaat.replace(/,/g, '.').replace(/[Rr]/g, '').trim();
+  const val = parseFloat(cleaned);
+  return isNaN(val) ? null : val;
+}
+
+function renderCheckinsDetail() {
+  const sData = cachedBin.students[currentStudentKey] || {};
+  const checkins = Array.isArray(sData.checkins) ? sData.checkins : [];
+
+  const values = checkins.map(c => parseResultaatRDash(c.resultaat)).filter(v => v !== null);
+  const totalR = values.reduce((a,b)=>a+b, 0);
+  const wins = values.filter(v=>v>0).length;
+  const losses = values.filter(v=>v<0).length;
+  const decided = wins+losses;
+  const winrate = decided > 0 ? Math.round((wins/decided)*100) : 0;
+
+  const totalEl = document.getElementById('checkins-totalr');
+  totalEl.textContent = checkins.length ? (totalR>=0?'+':'') + totalR.toFixed(1).replace(/\.0$/,'') + 'R' : '—';
+  totalEl.style.color = totalR >= 0 ? '#1a7a4a' : '#ef4444';
+  document.getElementById('checkins-winrate').textContent = checkins.length ? winrate+'%' : '—';
+
+  const container = document.getElementById('checkins-detail-list');
+  if(!checkins.length) {
+    container.innerHTML = '<p style="font-size:13px;color:var(--hint);text-align:center;padding:16px 0;">Nog geen check-ins opgeslagen</p>';
+    return;
+  }
+
+  container.innerHTML = checkins.map(c => {
+    const isNeg = c.resultaat && c.resultaat.trim().startsWith('-');
+    const badgeStyle = c.resultaat
+      ? (isNeg ? 'background:rgba(239,68,68,0.1);color:#ef4444;border-color:rgba(239,68,68,0.3);' : 'background:rgba(26,122,74,0.1);color:#1a7a4a;border-color:rgba(26,122,74,0.3);')
+      : '';
+    return `<div class="card" style="margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);">Week ${c.week}</div>
+          <div style="font-size:11px;color:var(--hint);">${c.timestamp}</div>
+        </div>
+        ${c.resultaat ? `<span class="badge" style="${badgeStyle}">${c.resultaat}</span>` : ''}
+      </div>
+      <button onclick="toggleCheckinDetailDash(${c.id})" style="font-size:11px;font-weight:700;color:var(--green);border:1.5px solid rgba(26,122,74,0.25);background:rgba(26,122,74,0.06);border-radius:8px;padding:5px 10px;cursor:pointer;font-family:inherit;">👁️ Bekijk</button>
+      <div id="checkin-detail-dash-${c.id}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);white-space:pre-wrap;font-family:'SF Mono','Courier New',monospace;line-height:1.6;">${c.tekst}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCheckinDetailDash(id) {
+  const el = document.getElementById('checkin-detail-dash-' + id);
+  if(el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function renderWY12Detail() {
+  const container = document.getElementById('wy12-detail-content');
+  const cycle = getActiveCycleFor(currentStudentKey);
+
+  if(!cycle) {
+    container.innerHTML = '<div class="card" style="text-align:center;padding:30px 16px;"><div style="font-size:28px;margin-bottom:8px;">🎯</div><p style="font-size:13px;color:var(--hint);">Geen actieve 12 Week Year cyclus</p></div>';
+    return;
+  }
+
+  const today = dashToday();
+  const currentWeek = getCycleWeekNum(cycle, today);
+
+  let html = `<div class="card card-accent">
+    <div class="card-header"><div class="card-title">🧭 Vision</div></div>
+    <div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:12px;">${cycle.vision}</div>
+    <div class="card-title" style="font-size:13px;margin-bottom:8px;">🎯 Doelen</div>
+    ${(cycle.goals||[]).map((g,i) => `<div style="display:flex;gap:8px;margin-bottom:6px;"><div style="width:18px;height:18px;border-radius:50%;background:var(--green-dim);color:var(--green);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</div><div style="font-size:12px;font-weight:600;color:var(--text);">${g.tekst}</div></div>`).join('')}
+  </div>`;
+
+  html += `<div class="card"><div class="card-title" style="margin-bottom:10px;">🗓️ 12 weken overzicht</div><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;">`;
+  for(let w=1; w<=12; w++) {
+    const isCurrent = w === currentWeek;
+    const isFuture = w > currentWeek;
+    const score = isFuture ? null : calcWeekScoreDash(cycle, w);
+    const color = isFuture ? 'var(--border2)' : getScoreColorDash(score);
+    const bg = isFuture ? 'var(--surface2)' : (score===null ? 'var(--surface2)' : color+'1A');
+    html += `<div style="text-align:center;padding:8px 2px;border-radius:10px;background:${bg};border:2px solid ${isCurrent?'#1a7a4a':'transparent'};">
+      <div style="font-size:9px;font-weight:700;color:var(--hint);text-transform:uppercase;">W${w}</div>
+      <div style="font-size:12px;font-weight:800;color:${isFuture?'var(--hint)':color};">${isFuture?'—':(score!==null?score+'%':'—')}</div>
+    </div>`;
+  }
+  html += `</div></div>`;
+
+  const categories = [...new Set(cycle.tactics.filter(t=>t.actief).map(t=>t.categorie))];
+  if(categories.length) {
+    html += `<div class="card"><div class="card-title" style="margin-bottom:10px;">📊 Categorie breakdown — week ${currentWeek}</div>`;
+    categories.forEach(cat => {
+      const score = calcWeekScoreDash(cycle, currentWeek, cat);
+      const color = getScoreColorDash(score);
+      const pct = score !== null ? score : 0;
+      html += `<div style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span style="font-size:12px;font-weight:600;color:var(--text);">${catLabelsWY[cat]||cat}</span>
+          <span style="font-size:13px;font-weight:800;color:${color};">${score!==null?score+'%':'—'}</span>
+        </div>
+        <div style="background:var(--surface2);border-radius:99px;height:8px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:99px;"></div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  const lastWeek = getLastCompletedWeekDash(cycle);
+  const wam = lastWeek !== null && cycle.weeklyReflections ? cycle.weeklyReflections[lastWeek] : null;
+  html += `<div class="card"><div class="card-header"><div class="card-title">📝 Laatste WAM ${lastWeek?'(week '+lastWeek+')':''}</div></div>`;
+  if(wam) {
+    html += `
+      <div style="background:rgba(26,122,74,0.08);border-radius:10px;padding:10px;margin-bottom:8px;"><div style="font-size:10px;font-weight:800;color:var(--green);margin-bottom:3px;">✅ WAT GING GOED</div><div style="font-size:13px;color:var(--text);line-height:1.5;">${wam.wentWell || '—'}</div></div>
+      <div style="background:rgba(239,68,68,0.06);border-radius:10px;padding:10px;margin-bottom:8px;"><div style="font-size:10px;font-weight:800;color:var(--red);margin-bottom:3px;">❌ WAT GING NIET GOED</div><div style="font-size:13px;color:var(--text);line-height:1.5;">${wam.didntWork || '—'}</div></div>
+      <div style="background:rgba(234,179,8,0.08);border-radius:10px;padding:10px;"><div style="font-size:10px;font-weight:800;color:#92400e;margin-bottom:3px;">🎯 FOCUS VOLGENDE WEEK</div><div style="font-size:13px;color:var(--text);line-height:1.5;">${wam.focusNextWeek || '—'}</div></div>`;
+  } else {
+    html += '<p style="font-size:13px;color:var(--hint);text-align:center;padding:10px 0;">Nog niet ingevuld</p>';
+  }
+  html += `</div>`;
+
+  container.innerHTML = html;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  showPinOverlay();
+});
+</script>
+</body>
+</html>
