@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#1a7a4a"/>
+<title>Kacper M · Coach Dashboard</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #1a7a4a; --surface: #fff; --surface2: #f4fbf7;
+  --border: rgba(0,0,0,0.08); --border2: rgba(0,0,0,0.12);
+  --green: #1a7a4a; --green-dim: rgba(26,122,74,0.1); --green-light: #2ecc82;
+  --red: #ef4444; --red-dim: rgba(239,68,68,0.1);
+  --yellow: #eab308; --yellow-dim: rgba(234,179,8,0.1);
+  --text: #0f2d20; --muted: #4a7a62; --hint: #8db8a0;
+  --safe-bottom: env(safe-area-inset-bottom, 20px);
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.app { max-width: 680px; margin: 0 auto; padding-bottom: 24px; }
+
+/* DARK MODE */
+body.dark { --bg: #0a0e0b; --surface: #141f17; --surface2: #1c2a1f; --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13); --text: #e8f0eb; --muted: #8db8a0; --hint: #5a7a62; }
+body.dark .card { background: #141f17 !important; border-color: rgba(255,255,255,0.08) !important; }
+body.dark .top-bar { background: #0a0e0b !important; border-bottom-color: rgba(255,255,255,0.08) !important; }
+body.dark .sidebar { background: #111a13 !important; }
+body.dark input, body.dark select, body.dark textarea { background: #1c2a1f !important; border-color: rgba(255,255,255,0.12) !important; color: #e8f0eb !important; }
+body.dark [style*="background:#fff"], body.dark [style*="background: #fff"] { background: #141f17 !important; }
+body.dark [style*="color: #0f2d20"], body.dark [style*="color:#0f2d20"] { color: #e8f0eb !important; }
+
+/* TOP BAR */
+.top-bar { display: flex; align-items: center; justify-content: space-between; padding: calc(14px + var(--safe-top)) 16px 12px; position: sticky; top: 0; z-index: 50; background: #1a7a4a; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.brand-text { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.9); }
+.brand-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 1px; }
+.hamburger { width: 34px; height: 34px; border-radius: 9px; background: rgba(255,255,255,0.15); border: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; flex-shrink: 0; }
+.hamburger span { display: block; width: 16px; height: 2px; background: #fff; border-radius: 2px; }
+.badge-white { background: rgba(255,255,255,0.15); color: #fff; border: 1.5px solid rgba(255,255,255,0.2); border-radius: 99px; padding: 4px 12px; font-size: 11px; font-weight: 700; }
+
+/* SIDEBAR */
+.sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; display: none; }
+.sidebar-overlay.open { display: block; }
+.sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 80%; max-width: 300px; background: #fff; z-index: 999; transform: translateX(-100%); transition: transform 0.26s ease; overflow-y: auto; box-shadow: 4px 0 24px rgba(0,0,0,0.15); }
+.sidebar.open { transform: translateX(0); }
+.sidebar-head { background: linear-gradient(135deg,#0f2d20,#1a7a4a); padding: calc(20px + env(safe-area-inset-top,0px)) 18px 18px; }
+.sb-item { display: flex; align-items: center; gap: 12px; padding: 13px 16px; cursor: pointer; border-left: 3px solid transparent; }
+.sb-item.active { border-left-color: #1a7a4a; background: rgba(26,122,74,0.08); }
+.sb-item .sb-label { font-size: 14px; font-weight: 600; color: #4a7a62; }
+.sb-item.active .sb-label { color: #1a7a4a; font-weight: 700; }
+.sb-divider { height: 1px; background: rgba(0,0,0,0.07); margin: 4px 0; }
+
+/* LOGIN */
+#login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; background: #1a7a4a; }
+
+/* CARDS */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 16px; margin-bottom: 12px; }
+.card-title { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.section-label { font-size: 11px; font-weight: 700; color: var(--hint); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+
+/* STUDENT CARD */
+.student-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 16px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s; }
+.student-card:active { transform: scale(0.98); }
+.student-avatar { width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg,#0f2d20,#1a7a4a); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #fff; flex-shrink: 0; }
+.kpi-pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+.kpi-green { background: rgba(26,122,74,0.1); color: #1a7a4a; }
+.kpi-red { background: rgba(239,68,68,0.1); color: #ef4444; }
+.kpi-yellow { background: rgba(234,179,8,0.1); color: #b45309; }
+.kpi-gray { background: rgba(0,0,0,0.05); color: #6b7280; }
+
+/* INPUTS */
+input, select, textarea { width: 100%; background: var(--surface2); border: 1.5px solid var(--border2); border-radius: 12px; padding: 12px 14px; font-size: 16px; color: var(--text); font-family: inherit; margin-bottom: 12px; outline: none; -webkit-appearance: none; resize: none; }
+label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+button { border: none; border-radius: 12px; padding: 13px 20px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.btn-green { background: #1a7a4a; color: #fff; width: 100%; }
+.btn-outline { background: none; border: 1.5px solid var(--border2); color: var(--muted); width: 100%; }
+.btn-red { background: var(--red-dim); color: var(--red); border: 1.5px solid rgba(239,68,68,0.2); }
+
+/* SLIDE */
+.slide { display: none; padding: 14px 14px 24px; }
+.slide.active { display: block; }
+
+/* TABS */
+.tab-row { display: flex; background: rgba(0,0,0,0.08); border-radius: 14px; padding: 4px; margin-bottom: 14px; gap: 4px; }
+.tab { flex: 1; background: transparent; border: none; border-radius: 10px; padding: 10px 8px; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.5); cursor: pointer; font-family: inherit; }
+.tab.active { background: #fff; color: #1a7a4a; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1a7a4a; color: #fff; padding: 12px 20px; border-radius: 99px; font-size: 13px; font-weight: 700; opacity: 0; transition: all 0.3s; z-index: 600; white-space: nowrap; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* FEEDBACK BADGE */
+.feedback-badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+.fb-goed { background: rgba(26,122,74,0.1); color: #1a7a4a; }
+.fb-matig { background: rgba(234,179,8,0.1); color: #b45309; }
+.fb-zorg { background: rgba(239,68,68,0.1); color: #ef4444; }
+
+/* STAT GRID */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.stat-box { background: var(--surface2); border-radius: 12px; padding: 12px; text-align: center; }
+.stat-val { font-size: 22px; font-weight: 800; color: var(--text); }
+.stat-label { font-size: 10px; font-weight: 700; color: var(--hint); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+/* PROGRESS BAR */
+.progress-bar { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; margin-top: 6px; }
+.progress-fill { height: 100%; background: #1a7a4a; border-radius: 99px; transition: width 0.4s; }
+
+/* DARK TOGGLE */
+.dark-toggle { width: 44px; height: 24px; border-radius: 99px; background: rgba(255,255,255,0.2); position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; border: none; }
+.dark-toggle-knob { width: 20px; height: 20px; border-radius: 99px; background: #fff; position: absolute; top: 2px; left: 2px; transition: left 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div style="width:100%;max-width:360px;">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="width:64px;height:64px;border-radius:18px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:28px;">🏆</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:4px;">Kacper M · Coaching</div>
+      <div style="font-size:20px;font-weight:800;color:#fff;">Coach Dashboard</div>
+    </div>
+    <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:24px 20px;backdrop-filter:blur(12px);">
+      <label style="font-size:13px;color:rgba(255,255,255,0.7);font-weight:600;text-transform:none;letter-spacing:0;">Pincode</label>
+      <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" id="coach-pin" placeholder="••••" style="background:rgba(0,0,0,0.2);border-color:rgba(255,255,255,0.2);color:#fff;text-align:center;font-size:24px;letter-spacing:10px;" onkeydown="if(event.key==='Enter')doLogin()"/>
+      <div id="login-err" style="display:none;color:#fca5a5;font-size:12px;font-weight:700;margin-bottom:10px;text-align:center;">❌ Onjuiste pincode</div>
+      <button onclick="doLogin()" style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.25);color:#fff;width:100%;padding:15px;font-size:15px;font-weight:800;border-radius:14px;cursor:pointer;font-family:inherit;">Inloggen →</button>
+    </div>
+    <div style="text-align:center;margin-top:16px;font-size:11px;color:rgba(255,255,255,0.4);">Alleen toegankelijk voor Kacper Mazur</div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="main-app" style="display:none;">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
+  <div class="sidebar" id="sb-panel">
+    <div class="sidebar-head">
+      <div style="font-size:22px;margin-bottom:8px;">🏆</div>
+      <div style="font-size:15px;font-weight:800;color:#fff;">Coach Dashboard</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:2px;">Kacper M · Coaching</div>
+    </div>
+    <div style="padding:10px 0;">
+      <div class="sb-item active" id="sbi-overview" onclick="showSlide('overview','sbi-overview')"><span style="font-size:18px;width:26px;">👥</span><span class="sb-label">Studenten overzicht</span></div>
+      <div class="sb-divider"></div>
+      <div style="font-size:10px;font-weight:800;color:#8db8a0;text-transform:uppercase;letter-spacing:0.1em;padding:12px 16px 4px;">Instellingen</div>
+      <div class="sb-item" onclick="toggleDark()">
+        <span style="font-size:18px;width:26px;" id="dark-icon">🌙</span>
+        <span class="sb-label" id="dark-label">Dark mode</span>
+        <button class="dark-toggle" onclick="event.stopPropagation();toggleDark()" style="margin-left:auto;">
+          <div class="dark-toggle-knob" id="dark-knob"></div>
+        </button>
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-item" onclick="doLogout()"><span style="font-size:18px;width:26px;">🚪</span><span class="sb-label">Uitloggen</span></div>
+    </div>
+  </div>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="hamburger" onclick="openSidebar()"><span></span><span></span><span></span></button>
+      <div>
+        <div class="brand-text">Coach Dashboard</div>
+        <div class="brand-sub" id="top-subtitle">Alle studenten</div>
+      </div>
+    </div>
+    <span class="badge-white" id="top-badge">Overzicht</span>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- SLIDE: OVERVIEW -->
+  <div class="slide active" id="slide-overview">
+    <div style="padding:8px 0 16px;">
+      <div style="font-size:22px;font-weight:800;color:#fff;">Goedemorgen, Kacper 👋</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:3px;">Hier is het overzicht van al je studenten</div>
+    </div>
+
+    <!-- Refresh knop -->
+    <div style="text-align:right;margin-bottom:12px;">
+      <button onclick="loadAllData()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:8px 16px;font-size:12px;font-weight:700;border-radius:99px;cursor:pointer;font-family:inherit;">🔄 Vernieuwen</button>
+    </div>
+
+    <div id="students-list">
+      <div style="text-align:center;padding:40px 0;color:rgba(255,255,255,0.6);">
+        <div style="font-size:28px;margin-bottom:10px;">⏳</div>
+        <div style="font-size:14px;font-weight:700;">Studenten laden...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE: STUDENT DETAIL -->
+  <div class="slide" id="slide-student">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <button onclick="showSlide('overview','sbi-overview')" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);border-radius:10px;width:38px;height:38px;color:#fff;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">←</button>
+      <div>
+        <div style="font-size:17px;font-weight:800;color:#fff;" id="student-detail-name">—</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);" id="student-detail-sub">—</div>
+      </div>
+    </div>
+
+    <!-- Student tabs -->
+    <div class="tab-row">
+      <button class="tab active" id="dtab-overzicht" onclick="setDetailTab('overzicht')">📊 Overzicht</button>
+      <button class="tab" id="dtab-taken" onclick="setDetailTab('taken')">📋 Taken</button>
+      <button class="tab" id="dtab-12wy" onclick="setDetailTab('12wy')">🎯 12WY</button>
+      <button class="tab" id="dtab-checkins" onclick="setDetailTab('checkins')">📝 Check-ins</button>
+    </div>
+
+    <!-- OVERZICHT TAB -->
+    <div id="dpanel-overzicht">
+      <div class="stat-grid" id="student-kpi-grid"></div>
+      <div id="student-streak-card"></div>
+      <div id="student-wy-card"></div>
+    </div>
+
+    <!-- TAKEN TAB -->
+    <div id="dpanel-taken" style="display:none;">
+      <!-- Nieuwe taak -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;">➕ Nieuwe taak toewijzen</div>
+        <label>Taakomschrijving</label>
+        <textarea id="new-taak-text" placeholder="Bijv. 3 maanden EUR/USD backtest data verzamelen..." rows="2" style="margin-bottom:8px;"></textarea>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <label>Deadline</label>
+            <input type="date" id="new-taak-deadline" style="margin:0;"/>
+          </div>
+          <div>
+            <label>Categorie</label>
+            <select id="new-taak-cat" style="margin:0;">
+              <option value="analyse">📊 Analyse</option>
+              <option value="backtest">🔁 Backtest</option>
+              <option value="psychologie">🧠 Psychologie</option>
+              <option value="risico">⚖️ Risicobeheer</option>
+              <option value="overige">📌 Overige</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-green" style="margin-top:8px;" onclick="addTaakForStudent()">+ Taak toewijzen</button>
+      </div>
+
+      <!-- Bestaande taken -->
+      <div id="student-taken-list"></div>
+    </div>
+
+    <!-- 12WY TAB -->
+    <div id="dpanel-12wy" style="display:none;">
+      <div id="student-12wy-content"></div>
+    </div>
+
+    <!-- CHECK-INS TAB -->
+    <div id="dpanel-checkins" style="display:none;">
+      <div id="student-checkins-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══ CONFIG ═══
+const COACH_PIN = '1379';
+const JSONBIN_ID = '6a859180da38895dfef6ab0b';
+const JSONBIN_KEY = '$2a$10$zj.JjyN7CR0V3zgeEnAkSu1TV2M1rcNbLJmf02JgXSBfWmJc0Ax4O';
+
+const STUDENTS = [
+  { key: 'ayoub_el_atrouss',     naam: 'Ayoub El-Atrouss',     initials: 'AE' },
+  { key: 'donny_van_zwol',       naam: 'Donny van Zwol',        initials: 'DZ' },
+  { key: 'joshua_van_de_kamp',   naam: 'Joshua van de Kamp',    initials: 'JK' },
+  { key: 'olivier_de_krom',      naam: 'Olivier de Krom',       initials: 'OD' },
+  { key: 'quint_van_den_heuvel', naam: 'Quint van den Heuvel',  initials: 'QH' },
+  { key: 'richard_matteman',     naam: 'Richard Matteman',      initials: 'RM' },
+  { key: 'sc_van_leusden',       naam: 'S.C. van Leusden',      initials: 'SC' },
+];
+
+const CAT_LABELS = {
+  analyse: '📊 Analyse', backtest: '🔁 Backtest',
+  psychologie: '🧠 Psychologie', risico: '⚖️ Risicobeheer', overige: '📌 Overige'
+};
+
+const FEEDBACK_OPTIONS = ['✅ Goed bezig', '⚠️ Kan beter', '🔴 Aandacht nodig', '💡 Tip meegegeven', '👏 Uitstekend'];
+
+let allData = {};
+let currentStudent = null;
+
+// ═══ HELPERS ═══
+function today() { const d = new Date(); d.setHours(0,0,0,0); return d; }
+function dateKey(date) { return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0'); }
+function parseKey(k) { return new Date(k+'T00:00:00'); }
+function addDays(d,n) { const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function weekNum(date) {
+  const d = new Date(date); d.setHours(0,0,0,0);
+  const day = d.getDay() || 7;
+  d.setDate(d.getDate() + 4 - day);
+  const year = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil((((d - year) / 86400000) + 1) / 7);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ═══ LOGIN ═══
+function doLogin() {
+  const pin = document.getElementById('coach-pin').value;
+  if(pin === COACH_PIN) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    initDark();
+    loadAllData();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('coach-pin').value = '';
+  }
+}
+function doLogout() {
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('coach-pin').value = '';
+  document.getElementById('login-err').style.display = 'none';
+}
+
+// ═══ SIDEBAR ═══
+function openSidebar() {
+  document.getElementById('sb-panel').classList.add('open');
+  document.getElementById('sb-overlay').classList.add('open');
+}
+function closeSidebar() {
+  document.getElementById('sb-panel').classList.remove('open');
+  document.getElementById('sb-overlay').classList.remove('open');
+}
+
+// ═══ DARK MODE ═══
+function initDark() {
+  const saved = localStorage.getItem('coach_dark') === '1';
+  if(saved) document.body.classList.add('dark');
+  updateDarkUI(saved);
+}
+function toggleDark() {
+  const isDark = document.body.classList.toggle('dark');
+  localStorage.setItem('coach_dark', isDark ? '1' : '0');
+  updateDarkUI(isDark);
+}
+function updateDarkUI(isDark) {
+  const knob = document.getElementById('dark-knob');
+  const toggle = knob?.parentElement;
+  const icon = document.getElementById('dark-icon');
+  const label = document.getElementById('dark-label');
+  if(knob) knob.style.left = isDark ? '22px' : '2px';
+  if(toggle) toggle.style.background = isDark ? '#1a7a4a' : 'rgba(255,255,255,0.2)';
+  if(icon) icon.textContent = isDark ? '☀️' : '🌙';
+  if(label) label.textContent = isDark ? 'Light mode' : 'Dark mode';
+}
+
+// ═══ NAVIGATION ═══
+function showSlide(id, sbiId) {
+  closeSidebar();
+  document.querySelectorAll('.slide').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
+  const slide = document.getElementById('slide-' + id);
+  if(slide) { slide.classList.add('active'); slide.style.display = 'block'; }
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  if(sbiId) document.getElementById(sbiId)?.classList.add('active');
+  const labels = { overview: 'Overzicht' };
+  document.getElementById('top-badge').textContent = labels[id] || id;
+  window.scrollTo(0,0);
+}
+
+// ═══ DATA ═══
+async function fetchBin() {
+  const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`, {
+    headers: { 'X-Master-Key': JSONBIN_KEY }
+  });
+  const data = await res.json();
+  const record = data.record;
+  return (record && record.students) ? record : { students: {} };
+}
+
+async function pushBin(data) {
+  await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+    body: JSON.stringify(data)
+  });
+}
+
+async function loadAllData() {
+  document.getElementById('students-list').innerHTML = `
+    <div style="text-align:center;padding:40px 0;color:rgba(255,255,255,0.6);">
+      <div style="font-size:28px;margin-bottom:10px;">⏳</div>
+      <div style="font-size:14px;font-weight:700;">Studenten laden...</div>
+    </div>`;
+  try {
+    const bin = await fetchBin();
+    allData = bin;
+    renderOverview();
+  } catch(e) {
+    document.getElementById('students-list').innerHTML = `<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.6);">❌ Kon data niet laden</div>`;
+  }
+}
+
+// ═══ OVERVIEW ═══
+function renderOverview() {
+  const container = document.getElementById('students-list');
+  container.innerHTML = STUDENTS.map(s => {
+    const data = allData.students?.[s.key] || {};
+    const taken = data.taken || [];
+    const wy12 = data.wy12 || { cycles: [], draftTactics: [] };
+    const checkins = data.checkins || [];
+
+    // KPIs
+    const openTaken = taken.filter(t => t.status !== 'done' && t.status !== 'afgerond').length;
+    const doneTaken = taken.filter(t => t.status === 'done' || t.status === 'afgerond').length;
+    const totalTaken = taken.length;
+
+    // Actieve cyclus
+    const activeCycle = wy12.cycles?.find(c => c.id === wy12.activeCycleId);
+    const weekScore = activeCycle ? calcWeekScore(activeCycle) : null;
+    const streak = activeCycle ? calcStreak(activeCycle) : 0;
+
+    // Check-in van vorige week gedaan?
+    const thisWeek = weekNum(today());
+    const lastWeekNum = thisWeek - 1;
+    const thisYear = today().getFullYear();
+
+    function isLastWeek(date) {
+      return weekNum(date) === lastWeekNum && date.getFullYear() === thisYear;
+    }
+
+    const checkinVorigeWeek = checkins.some(ci => {
+      // Gebruik id (unix ms timestamp)
+      if(ci.id && typeof ci.id === 'number' && ci.id > 1000000000000) {
+        return isLastWeek(new Date(ci.id));
+      }
+      // Fallback: timestamp string "d-m-yyyy hh:mm:ss"
+      if(ci.timestamp) {
+        try {
+          const datePart = ci.timestamp.split(',')[0].trim(); // "14-7-2026"
+          const [d,m,y] = datePart.split('-');
+          return isLastWeek(new Date(`${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}T00:00:00`));
+        } catch(e) {}
+      }
+      return false;
+    });
+
+    const weekScoreColor = weekScore === null ? 'kpi-gray' : weekScore >= 80 ? 'kpi-green' : weekScore >= 60 ? 'kpi-yellow' : 'kpi-red';
+
+    return `<div class="student-card" onclick="openStudent('${s.key}')">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div class="student-avatar">${s.initials}</div>
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:800;color:var(--text);">${s.naam}</div>
+          <div style="font-size:11px;color:var(--hint);margin-top:2px;">
+            ${activeCycle ? '🟢 Cyclus actief' : '⚪ Geen actieve cyclus'}
+          </div>
+        </div>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="color:var(--border2);"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        <span class="kpi-pill ${openTaken > 0 ? 'kpi-yellow' : 'kpi-green'}">📋 ${openTaken} open taken</span>
+        ${weekScore !== null ? `<span class="kpi-pill ${weekScoreColor}">🎯 ${weekScore}% weekscore</span>` : '<span class="kpi-pill kpi-gray">🎯 Geen cyclus</span>'}
+        ${streak > 0 ? `<span class="kpi-pill kpi-green">🔥 ${streak} dag streak</span>` : ''}
+        <span class="kpi-pill ${checkinVorigeWeek ? 'kpi-green' : 'kpi-red'}">${checkinVorigeWeek ? '✅ Check-in vorige week' : '❌ Geen check-in vorige week'}</span>
+      </div>
+      ${takenProgressBar(doneTaken, totalTaken)}
+    </div>`;
+  }).join('');
+}
+
+function takenProgressBar(done, total) {
+  if(total === 0) return '';
+  const pct = Math.round((done/total)*100);
+  return `<div class="progress-bar" style="margin-top:10px;">
+    <div class="progress-fill" style="width:${pct}%"></div>
+  </div>
+  <div style="font-size:10px;color:var(--hint);margin-top:4px;">${done}/${total} taken klaar (${pct}%)</div>`;
+}
+
+// ═══ WEEK SCORE ═══
+function calcWeekScore(cycle) {
+  if(!cycle || !cycle.tactics) return null;
+  const tactics = cycle.tactics.filter(t => t.actief);
+  if(!tactics.length) return null;
+
+  const tod = today();
+  const dayOfWeek = tod.getDay() || 7;
+  const weekStart = addDays(tod, 1 - dayOfWeek);
+  const weekEnd = addDays(weekStart, 6);
+
+  let total = 0, checked = 0;
+  let cursor = new Date(weekStart);
+  while(cursor <= weekEnd) {
+    const key = dateKey(cursor);
+    const checkin = cycle.dailyCheckins?.[key] || {};
+    tactics.forEach(t => {
+      if(isTacticOn(t, cursor)) {
+        total++;
+        if(checkin[t.id] === true) checked++;
+      }
+    });
+    cursor = addDays(cursor, 1);
+  }
+  return total === 0 ? null : Math.round((checked/total)*100);
+}
+
+function isTacticOn(t, date) {
+  if(t.startDate && dateKey(date) < t.startDate) return false;
+  if(t.frequentie === 'dagelijks') return true;
+  if(Array.isArray(t.frequentie)) return t.frequentie.includes(date.getDay());
+  return true;
+}
+
+function calcStreak(cycle) {
+  if(!cycle) return 0;
+  const tactics = (cycle.tactics || []).filter(t => t.actief);
+  if(!tactics.length) return 0;
+  let streak = 0;
+  let cursor = today();
+  for(let i = 0; i < 84; i++) {
+    const key = dateKey(cursor);
+    const scheduled = tactics.filter(t => isTacticOn(t, cursor));
+    if(!scheduled.length) { cursor = addDays(cursor, -1); continue; }
+    const checkin = cycle.dailyCheckins?.[key] || {};
+    const anyDone = scheduled.some(t => checkin[t.id] === true);
+    if(anyDone) { streak++; cursor = addDays(cursor, -1); }
+    else break;
+  }
+  return streak;
+}
+
+// ═══ STUDENT DETAIL ═══
+function openStudent(key) {
+  currentStudent = key;
+  const s = STUDENTS.find(s => s.key === key);
+  document.getElementById('student-detail-name').textContent = s.naam;
+  document.getElementById('student-detail-sub').textContent = 'Coach overzicht';
+  document.getElementById('top-badge').textContent = s.naam.split(' ')[0];
+  document.getElementById('top-subtitle').textContent = s.naam;
+
+  document.querySelectorAll('.slide').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
+  document.getElementById('slide-student').classList.add('active');
+  document.getElementById('slide-student').style.display = 'block';
+
+  setDetailTab('overzicht');
+  window.scrollTo(0,0);
+}
+
+function setDetailTab(tab) {
+  ['overzicht','taken','12wy','checkins'].forEach(t => {
+    document.getElementById('dtab-'+t)?.classList.toggle('active', t===tab);
+    document.getElementById('dpanel-'+t).style.display = t===tab ? 'block' : 'none';
+  });
+  if(tab === 'overzicht') renderDetailOverzicht();
+  if(tab === 'taken') renderDetailTaken();
+  if(tab === '12wy') renderDetail12WY();
+  if(tab === 'checkins') renderDetailCheckins();
+}
+
+// ─── OVERZICHT ───
+function renderDetailOverzicht() {
+  const data = allData.students?.[currentStudent] || {};
+  const taken = data.taken || [];
+  const wy12 = data.wy12 || { cycles: [] };
+  const activeCycle = wy12.cycles?.find(c => c.id === wy12.activeCycleId);
+  const weekScore = activeCycle ? calcWeekScore(activeCycle) : null;
+  const streak = activeCycle ? calcStreak(activeCycle) : 0;
+  const openTaken = taken.filter(t => t.status !== 'done' && t.status !== 'afgerond').length;
+  const bezig = taken.filter(t => t.status === 'bezig').length;
+
+  document.getElementById('student-kpi-grid').innerHTML = `
+    <div class="stat-box">
+      <div class="stat-val" style="color:${weekScore===null?'var(--hint)':weekScore>=80?'#1a7a4a':weekScore>=60?'#eab308':'#ef4444'}">${weekScore !== null ? weekScore+'%' : '—'}</div>
+      <div class="stat-label">Weekscore</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:${streak>0?'#1a7a4a':'var(--hint)'}">${streak}</div>
+      <div class="stat-label">Dag streak 🔥</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:${openTaken>0?'#eab308':'#1a7a4a'}">${openTaken}</div>
+      <div class="stat-label">Open taken</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:${bezig>0?'#1a7a4a':'var(--hint)'}">${bezig}</div>
+      <div class="stat-label">Taken bezig</div>
+    </div>`;
+
+  // Actieve cyclus info
+  if(activeCycle) {
+    const tactics = (activeCycle.tactics || []).filter(t => t.actief);
+    const todayKey = dateKey(today());
+    const todayCheckin = activeCycle.dailyCheckins?.[todayKey] || {};
+    const todayScheduled = tactics.filter(t => isTacticOn(t, today()));
+    const todayDone = todayScheduled.filter(t => todayCheckin[t.id] === true).length;
+
+    document.getElementById('student-wy-card').innerHTML = `
+      <div class="card">
+        <div class="card-title">🎯 12 Week Year</div>
+        <div style="font-size:12px;color:var(--hint);margin-bottom:10px;">${activeCycle.vision || 'Geen visie ingesteld'}</div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+          <span style="color:var(--muted);">Vandaag afgevinkt</span>
+          <span style="font-weight:800;color:var(--text);">${todayDone}/${todayScheduled.length}</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${todayScheduled.length?Math.round(todayDone/todayScheduled.length*100):0}%"></div>
+        </div>
+        <div style="font-size:11px;color:var(--hint);margin-top:6px;">${tactics.length} actieve tactics</div>
+      </div>`;
+  } else {
+    document.getElementById('student-wy-card').innerHTML = `<div class="card" style="text-align:center;padding:20px;"><div style="font-size:24px;margin-bottom:8px;">⚪</div><div style="font-size:13px;color:var(--hint);">Geen actieve 12WY cyclus</div></div>`;
+  }
+}
+
+// ─── TAKEN ───
+function renderDetailTaken() {
+  const data = allData.students?.[currentStudent] || {};
+  const taken = data.taken || [];
+  const container = document.getElementById('student-taken-list');
+
+  if(!taken.length) {
+    container.innerHTML = '<div class="card" style="text-align:center;padding:20px;color:var(--hint);">Nog geen taken</div>';
+    return;
+  }
+
+  const statusColor = { todo: 'var(--hint)', bezig: '#eab308', done: '#1a7a4a', afgerond: '#1a7a4a' };
+  const statusLabel = { todo: 'Te doen', bezig: 'Bezig', done: 'Klaar', afgerond: 'Klaar' };
+
+  container.innerHTML = [...taken].reverse().map(t => `
+    <div class="card" style="margin-bottom:8px;">
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <div style="width:10px;height:10px;border-radius:99px;background:${statusColor[t.status]};flex-shrink:0;margin-top:4px;"></div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4;">${t.titel || t.taak || "—"}</div>
+          <div style="font-size:11px;color:var(--hint);margin-top:3px;">${CAT_LABELS[t.cat||t.categorie]||(t.cat||t.categorie||"—")}${t.deadline?' · 📅 '+t.deadline:''}</div>
+          <div style="font-size:11px;font-weight:700;color:${statusColor[t.status]};margin-top:4px;">${statusLabel[t.status]}</div>
+        </div>
+        <button onclick="deleteTaak('${t.id}')" style="background:none;border:none;color:var(--hint);cursor:pointer;font-size:16px;padding:0;flex-shrink:0;">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+async function addTaakForStudent() {
+  const text = document.getElementById('new-taak-text').value.trim();
+  if(!text) { showToast('⚠️ Vul een taak in'); return; }
+  const deadline = document.getElementById('new-taak-deadline').value;
+  const cat = document.getElementById('new-taak-cat').value;
+  const newTaak = { id: Date.now(), titel: text, status: 'todo', deadline, cat, aangemaakt: new Date().toLocaleDateString('nl-NL') };
+
+  const bin = await fetchBin();
+  if(!bin.students[currentStudent]) bin.students[currentStudent] = {};
+  if(!bin.students[currentStudent].taken) bin.students[currentStudent].taken = [];
+  bin.students[currentStudent].taken.push(newTaak);
+  await pushBin(bin);
+  allData = bin;
+
+  document.getElementById('new-taak-text').value = '';
+  document.getElementById('new-taak-deadline').value = '';
+  renderDetailTaken();
+  showToast('✅ Taak toegewezen!');
+}
+
+async function deleteTaak(id) {
+  if(!confirm('Taak verwijderen?')) return;
+  const bin = await fetchBin();
+  const taken = bin.students[currentStudent]?.taken || [];
+  bin.students[currentStudent].taken = taken.filter(t => String(t.id) !== String(id));
+  await pushBin(bin);
+  allData = bin;
+  renderDetailTaken();
+  showToast('🗑 Taak verwijderd');
+}
+
+// ─── 12WY ───
+function renderDetail12WY() {
+  const data = allData.students?.[currentStudent] || {};
+  const wy12 = data.wy12 || { cycles: [], draftTactics: [] };
+  const activeCycle = wy12.cycles?.find(c => c.id === wy12.activeCycleId);
+  const container = document.getElementById('student-12wy-content');
+
+  if(!activeCycle) {
+    container.innerHTML = '<div class="card" style="text-align:center;padding:24px;"><div style="font-size:28px;margin-bottom:10px;">⚪</div><div style="font-size:14px;color:var(--hint);">Geen actieve cyclus</div><div style="font-size:12px;color:var(--hint);margin-top:6px;">De student kan zelf een cyclus starten in de app</div></div>';
+    return;
+  }
+
+  // Week score per week
+  const tactics = (activeCycle.tactics || []).filter(t => t.actief);
+  const today_ = today();
+  const cycleStart = parseKey(activeCycle.startDate || dateKey(today_));
+  const dayInCycle = Math.floor((today_ - cycleStart) / 86400000);
+  const currentWeek = Math.min(Math.ceil((dayInCycle+1)/7), 12);
+
+  let weekScoresHtml = '';
+  for(let w = 1; w <= currentWeek; w++) {
+    const wStart = addDays(cycleStart, (w-1)*7);
+    const wEnd = addDays(wStart, 6);
+    let total = 0, checked = 0;
+    let cur = new Date(wStart);
+    while(cur <= wEnd) {
+      const key = dateKey(cur);
+      const ci = activeCycle.dailyCheckins?.[key] || {};
+      tactics.forEach(t => {
+        if(isTacticOn(t, cur)) {
+          total++;
+          if(ci[t.id] === true) checked++;
+        }
+      });
+      cur = addDays(cur, 1);
+    }
+    const score = total ? Math.round(checked/total*100) : null;
+    const color = score === null ? 'var(--hint)' : score >= 80 ? '#1a7a4a' : score >= 60 ? '#eab308' : '#ef4444';
+    weekScoresHtml += `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:13px;color:var(--muted);">Week ${w}</span>
+      <span style="font-size:14px;font-weight:800;color:${color};">${score !== null ? score+'%' : '—'}</span>
+    </div>`;
+  }
+
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-title">🎯 Actieve Cyclus</div>
+      <div style="font-size:12px;color:var(--hint);margin-bottom:12px;">${activeCycle.vision || 'Geen visie'}</div>
+      <div style="font-size:11px;color:var(--hint);">Start: ${activeCycle.startDate || '—'} · Week ${currentWeek}/12</div>
+      <div class="progress-bar" style="margin-top:8px;">
+        <div class="progress-fill" style="width:${Math.round(currentWeek/12*100)}%"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px;">📋 Tactics (${tactics.length} actief)</div>
+      ${tactics.map(t => `<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);">
+        <span style="color:var(--hint);font-size:11px;">${t.categorie}</span><br>${t.naam}
+        <span style="font-size:10px;color:var(--hint);"> · ${t.frequentie === 'dagelijks' ? 'dagelijks' : 'specifieke dagen'}</span>
+      </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px;">📊 Weekscores</div>
+      ${weekScoresHtml}
+    </div>`;
+}
+
+// ─── CHECK-INS ───
+function renderDetailCheckins() {
+  const data = allData.students?.[currentStudent] || {};
+  const checkins = (data.checkins || []).slice();
+  const container = document.getElementById('student-checkins-list');
+
+  if(!checkins.length) {
+    container.innerHTML = '<div class="card" style="text-align:center;padding:24px;color:var(--hint);">Nog geen check-ins</div>';
+    return;
+  }
+
+  container.innerHTML = checkins.map(ci => {
+    const feedback = ci.coachFeedback || null;
+    return `<div class="card" style="margin-bottom:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div>
+          <div style="font-size:13px;font-weight:800;color:var(--text);">Week: ${ci.week || ci.weekOf || '—'}</div>
+          <div style="font-size:11px;color:var(--hint);margin-top:2px;">${ci.naam || ''} · ${ci.timestamp || ''}</div>
+        </div>
+        ${feedback ? `<span class="feedback-badge fb-goed">${feedback.label}</span>` : `<span class="feedback-badge" style="background:var(--border);color:var(--hint);">Geen beoordeling</span>`}
+      </div>
+
+      ${ci.resultaat ? `<div style="margin-bottom:8px;"><div style="font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;margin-bottom:4px;">Resultaten</div><div style="font-size:13px;color:var(--text);line-height:1.5;">${ci.resultaat}</div></div>` : ''}
+      ${ci.tekst ? `<div style="margin-bottom:10px;"><div style="font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;margin-bottom:4px;">Volledige check-in</div><div style="font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;background:var(--surface2);padding:10px;border-radius:10px;">${ci.tekst}</div></div>` : ''}
+
+      <!-- Coach feedback sectie -->
+      <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:2px;">
+        <div style="font-size:11px;font-weight:700;color:var(--hint);text-transform:uppercase;margin-bottom:8px;">Jouw feedback</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+          ${FEEDBACK_OPTIONS.map(opt => `<span onclick="setFeedbackLabel('${ci.id || ci.weekOf}','${opt}')" style="padding:5px 10px;border-radius:99px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid ${feedback?.label===opt?'#1a7a4a':'var(--border2)'};background:${feedback?.label===opt?'rgba(26,122,74,0.1)':'transparent'};color:${feedback?.label===opt?'#1a7a4a':'var(--muted)'};">${opt}</span>`).join('')}
+        </div>
+        <textarea id="feedback-txt-${ci.id || ci.weekOf || ci.week}" placeholder="Voeg een persoonlijk bericht toe..." rows="2" style="margin-bottom:8px;">${feedback?.tekst || ''}</textarea>
+        <button onclick="saveFeedback('${ci.id || ci.weekOf || ci.week}')" class="btn-green">💬 Feedback opslaan</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function setFeedbackLabel(checkinId, label) {
+  await saveFeedbackData(checkinId, label, null);
+}
+
+async function saveFeedback(checkinId) {
+  const txt = document.getElementById('feedback-txt-'+checkinId)?.value || '';
+  await saveFeedbackData(checkinId, null, txt);
+}
+
+async function saveFeedbackData(checkinId, labelOverride, tekstOverride) {
+  const bin = await fetchBin();
+  const checkins = bin.students[currentStudent]?.checkins || [];
+  const ci = checkins.find(c => String(c.id || c.weekOf || c.week) === checkinId);
+  if(!ci) return;
+
+  if(!ci.coachFeedback) ci.coachFeedback = { label: '', tekst: '' };
+  if(labelOverride !== null) ci.coachFeedback.label = labelOverride;
+  if(tekstOverride !== null) ci.coachFeedback.tekst = tekstOverride;
+  ci.coachFeedback.savedAt = Date.now();
+
+  await pushBin(bin);
+  allData = bin;
+  showToast('✅ Feedback opgeslagen!');
+  renderDetailCheckins();
+}
+
+// ═══ INIT ═══
+document.getElementById('coach-pin').addEventListener('keydown', e => {
+  if(e.key === 'Enter') doLogin();
+});
+
+// Greeting aanpassen op tijd
+const hour = new Date().getHours();
+const greeting = hour < 12 ? 'Goedemorgen' : hour < 18 ? 'Goedemiddag' : 'Goedenavond';
+document.querySelector('#slide-overview > div:first-child > div:first-child').textContent = greeting + ', Kacper 👋';
+</script>
+</body>
+</html>
